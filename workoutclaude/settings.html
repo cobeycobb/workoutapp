@@ -66,6 +66,7 @@
           </div>
           <div class="actions">
             <button id="save" class="btn blue">Save</button>
+            <button id="test" class="btn blue">Test Token</button>
             <button id="backupNow" class="btn blue">Backup Now</button>
             <span id="status" class="note"></span>
           </div>
@@ -153,6 +154,20 @@
         const next = { owner:$('owner').value.trim(), repo:$('repo').value.trim(), branch:$('branch').value.trim()||'main', dir:$('dir').value.trim()||'backups', token:$('token').value.trim(), auto:$('auto').checked };
         saveCfg(next); $('status').textContent='Saved'; $('status').className='note ok';
         setTimeout(()=>{$('status').textContent='';},1500);
+      });
+
+      $('test').addEventListener('click', async ()=>{
+        $('status').textContent='Testing…'; $('status').className='note';
+        const s = loadCfg();
+        if(!s.token){ $('status').textContent='No token saved'; $('status').className='note err'; return; }
+        try{
+          const url = `https://api.github.com/repos/${encodeURIComponent(s.owner||'')}/${encodeURIComponent(s.repo||'')}`;
+          const r = await fetch(url, { headers: GH_HEADERS(s.token) });
+          if(r.status===200){ $('status').textContent='Token OK: repo readable'; $('status').className='note ok'; }
+          else if(r.status===401){ $('status').textContent='Bad credentials (401): token invalid or expired'; $('status').className='note err'; }
+          else if(r.status===404){ $('status').textContent='Repo not found or no access (404)'; $('status').className='note err'; }
+          else { $('status').textContent=`Unexpected status ${r.status}`; $('status').className='note err'; }
+        }catch(e){ $('status').textContent=`Test failed: ${e.message}`; $('status').className='note err'; }
       });
 
       $('backupNow').addEventListener('click', async ()=>{
