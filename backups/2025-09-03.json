@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "exportedAt": "2025-09-03T22:19:39.543Z",
+  "data": {
+    "lat_pulldown": [
+      {
+        "dateISO": "2025-09-03T19:23:09.466Z",
+        "exerciseId": "lat_pulldown",
+        "sets": [
+          {
+            "reps": 6,
+            "rir": 2
+          },
+          {
+            "reps": 8,
+            "rir": 3
+          },
+          {
+            "reps": 3,
+            "rir": 0
+          },
+          {
+            "reps": 9,
+            "rir": 1
+          }
+        ],
+        "weightPerHand": null,
+        "totalWeight": 140
+      }
+    ],
+    "incline_bench": [
+      {
+        "dateISO": "2025-09-03T22:01:17.591Z",
+        "exerciseId": "incline_bench",
+        "sets": [
+          {
+            "reps": 6,
+            "rir": 1
+          },
+          {
+            "reps": 7,
+            "rir": 2
+          },
+          {
+            "reps": 7,
+            "rir": 1
+          },
+          {
+            "reps": 7,
+            "rir": 1
+          }
+        ],
+        "weightPerHand": 77.5,
+        "totalWeight": 155
+      }
+    ],
+    "rdl": []
+  }
+}
