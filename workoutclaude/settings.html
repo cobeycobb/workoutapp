@@ -99,16 +99,24 @@
       function b64(text){ return btoa(unescape(encodeURIComponent(text))); }
       function sameDayStr(d){ const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; }
 
+      const GH_HEADERS = (token)=>({
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      });
       async function githubFileExists({owner,repo,branch,dir,token}, filename){
         const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(dir)}/${encodeURIComponent(filename)}?ref=${encodeURIComponent(branch)}`;
-        const r = await fetch(url, { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }});
+        const r = await fetch(url, { headers: GH_HEADERS(token) });
         return r.ok; // 200 if exists
       }
       async function githubCreateFile({owner,repo,branch,dir,token}, filename, content, message){
         const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(dir)}/${encodeURIComponent(filename)}`;
         const body = { message, content: b64(content), branch };
-        const r = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }, body: JSON.stringify(body) });
-        if (!r.ok) throw new Error(`GitHub error ${r.status}`);
+        const r = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...GH_HEADERS(token) }, body: JSON.stringify(body) });
+        if (!r.ok) {
+          const txt = await r.text();
+          throw new Error(`GitHub error ${r.status}: ${txt}`);
+        }
         return r.json();
       }
 
@@ -152,9 +160,8 @@
         try{
           const msg = await backupNow(loadCfg());
           $('status').textContent = msg; $('status').className='note ok';
-        }catch(e){ $('status').textContent = 'Backup failed'; $('status').className='note err'; }
+        }catch(e){ $('status').textContent = `Backup failed: ${e.message}`; $('status').className='note err'; }
       });
     </script>
   </body>
 </html>
-
