@@ -4,6 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Workout Tracker — Exercise (Mockup)</title>
+    <meta name="theme-color" content="#64b5f6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="../Screenshot 2025-09-03 at 12.00.41 PM.png" />
     <style>
       :root {
         --bg-start: #1e1e2e;
@@ -177,7 +182,7 @@
     </style>
   </head>
   <body>
-    <!-- Static mockup: layout and visuals only -->
+    <!-- Static mockup with PWA service worker registration -->
     <div class="phone">
       <div class="top">
         <a class="back" href="./home_screen_mockup.html">← Back to Workout</a>
@@ -231,6 +236,12 @@
       </div>
     </div>
 
+    <script>
+      // Register service worker for PWA (scope: workoutclaude/)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(() => {});
+      }
+    </script>
     <script>
       // Interactive prototype logic (no backend)
       const EXERCISES = {

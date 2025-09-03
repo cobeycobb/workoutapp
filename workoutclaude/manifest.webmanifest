@@ -1,0 +1,12 @@
+{
+  "name": "Workout Tracker",
+  "short_name": "Workout",
+  "start_url": "./home_screen_mockup.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1e1e2e",
+  "theme_color": "#64b5f6",
+  "description": "Track sets, reps, RIR and progression for Lat Pulldown, Incline DB Bench and DB RDL.",
+  "icons": []
+}
+
