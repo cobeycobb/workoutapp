@@ -291,7 +291,8 @@
         sets: Array.from({ length: ex.sets }, () => ({ reps: 0, rir: null })),
         weight: ex.defaultWeight,
         timerRemaining: ex.rest.base,
-        timerRunning: false
+        timerRunning: false,
+        sessionSaved: false
       });
       let state = loadState() || initialState();
       let timerInterval = null;
@@ -506,9 +507,30 @@
           // Completed
           logBtn.disabled = true;
           logBtn.textContent = 'All sets logged — great work!';
+          finalizeSession();
         }
         saveState();
         renderBars();
+      }
+
+      function finalizeSession() {
+        if (state.sessionSaved) return;
+        const session = {
+          dateISO: new Date().toISOString(),
+          exerciseId: ex.id,
+          sets: state.sets.map(s => ({ reps: s.reps, rir: s.rir })),
+          // store weights both ways for flexibility
+          weightPerHand: ex.unit.includes('/hand') ? state.weight : null,
+          totalWeight: ex.unit.includes('/hand') ? Math.round(state.weight * 2 * 10) / 10 : state.weight
+        };
+        const key = `workoutclaude:history:${ex.id}`;
+        const arr = (() => { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } })();
+        arr.push(session);
+        // keep last 24 entries to avoid bloat
+        while (arr.length > 24) arr.shift();
+        localStorage.setItem(key, JSON.stringify(arr));
+        state.sessionSaved = true;
+        saveState();
       }
 
       function undo() {
@@ -529,6 +551,7 @@
         [...rirButtonsEl.children].forEach((c) => c.classList.remove('selected'));
         state.timerRemaining = ex.rest.base;
         updateTimerDisplay();
+        state.sessionSaved = false;
         saveState();
         renderBars();
       }
