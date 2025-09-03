@@ -7,6 +7,7 @@ const CACHE_NAME = `workout-cache-${VERSION}`;
 const CORE = [
   BASE + 'home_screen_mockup.html',
   BASE + 'exercise_detail_mockup.html',
+  BASE + 'history_manager.html',
   BASE + 'manifest.webmanifest',
 ];
 
@@ -68,4 +69,3 @@ self.addEventListener('fetch', (event) => {
     })()
   );
 });
-
