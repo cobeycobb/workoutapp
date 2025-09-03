@@ -253,6 +253,7 @@
       <section class="card" style="margin-top:14px;">
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <a class="ghost" href="./history_manager.html" style="text-decoration:none; color: var(--blue); border-color: rgba(100,181,246,0.45);">🗑 Manage History</a>
+          <a class="ghost" href="./settings.html" style="text-decoration:none; color: var(--blue); border-color: rgba(100,181,246,0.45);">⚙️ Settings</a>
         </div>
       </section>
 
@@ -340,5 +341,34 @@
     renderHistory('lat_pulldown','lat-history');
     renderHistory('incline_bench','incline-history');
     renderHistory('rdl','rdl-history');
+    // Optional daily auto-backup to GitHub if configured
+    (async function autoBackup(){
+      const cfgKey = 'workoutclaude:ghBackupConfig';
+      function loadCfg(){ try{ return JSON.parse(localStorage.getItem(cfgKey)||'{}'); }catch{return{}} }
+      const cfg = loadCfg();
+      if(!cfg.auto || !cfg.token || !cfg.owner || !cfg.repo) return;
+      const today = (d=>{ const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; })(Date.now());
+      const last = localStorage.getItem('workoutclaude:lastBackupDate');
+      if(last === today) return;
+      // Build payloads
+      function loadAll(){
+        const out={}; ['lat_pulldown','incline_bench','rdl'].forEach(id=>{ try{ out[id]=JSON.parse(localStorage.getItem(`workoutclaude:history:${id}`)||'[]'); }catch{ out[id]=[] } });
+        return out;
+      }
+      function toCSV(all){ const headers=['dateISO','exerciseId','totalWeight','weightPerHand','S1_reps','S1_rir','S2_reps','S2_rir','S3_reps','S3_rir','S4_reps','S4_rir']; const rows=[headers.join(',')]; const UNITS={lat_pulldown:'lb',incline_bench:'lb/hand',rdl:'lb/hand'}; Object.keys(all).forEach(id=>{ (all[id]||[]).forEach(s=>{ const total= typeof s.totalWeight==='number'? s.totalWeight : (UNITS[id].includes('/hand')? (s.weightPerHand||0)*2 : (s.weightPerHand||0)); const wph = s.weightPerHand ?? (UNITS[id].includes('/hand') ? (s.totalWeight||0)/2 : ''); const cells=[s.dateISO,id,total,wph]; for(let i=0;i<4;i++){ const set=s.sets?.[i]||{}; cells.push(set.reps ?? ''); cells.push(set.rir ?? ''); } rows.push(cells.join(',')); }); }); return rows.join('\n'); }
+      function b64(text){ return btoa(unescape(encodeURIComponent(text))); }
+      async function githubFileExists({owner,repo,branch='main',dir='backups',token}, filename){ const url=`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(dir)}/${encodeURIComponent(filename)}?ref=${encodeURIComponent(branch)}`; const r=await fetch(url,{headers:{Authorization:`token ${token}`,Accept:'application/vnd.github+json'}}); return r.ok; }
+      async function githubCreateFile({owner,repo,branch='main',dir='backups',token}, filename, content, message){ const url=`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(dir)}/${encodeURIComponent(filename)}`; const body={message, content:b64(content), branch}; const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`token ${cfg.token}`,Accept:'application/vnd.github+json'}, body:JSON.stringify(body)}); if(!r.ok) throw new Error('GitHub error'); return r.json(); }
+      try{
+        const all = loadAll();
+        const payload = { version:1, exportedAt:new Date().toISOString(), data: all };
+        const jsonName = `${today}.json`; const csvName = `${today}.csv`;
+        if(!(await githubFileExists(cfg, jsonName))){
+          await githubCreateFile(cfg, jsonName, JSON.stringify(payload,null,2), `Backup ${today} (JSON)`);
+          await githubCreateFile(cfg, csvName, toCSV(all), `Backup ${today} (CSV)`);
+        }
+        localStorage.setItem('workoutclaude:lastBackupDate', today);
+      }catch(e){ /* silent fail */ }
+    })();
   </script>
 </html>

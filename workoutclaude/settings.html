@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workout Tracker — Settings</title>
+    <meta name="theme-color" content="#64b5f6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <style>
+      :root { --bg-start:#1e1e2e; --bg-end:#2a2d3a; --card:#1a1d29; --card-2:#202332; --border:#3a3d4a; --text:#e6e7ea; --muted:#aab0bd; --blue:#64b5f6; --radius:12px; --shadow:0 8px 24px rgba(0,0,0,.35); --container-w:430px; --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-left: env(safe-area-inset-left, 0px); --safe-right: env(safe-area-inset-right, 0px); }
+      *,*::before,*::after{box-sizing:border-box}
+      html,body{height:100%}
+      body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:linear-gradient(145deg,var(--bg-start),var(--bg-end))}
+      .phone{max-width:var(--container-w);margin:0 auto;padding:calc(20px + var(--safe-top)) calc(16px + var(--safe-right)) calc(28px + var(--safe-bottom)) calc(16px + var(--safe-left))}
+      .card{background:linear-gradient(180deg,var(--card),var(--card-2));border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+      h1{margin:0 0 6px;font-size:22px;font-weight:800;color:var(--blue)}
+      .ghost{display:inline-block;margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0f1422;color:var(--muted);font-weight:800;text-decoration:none}
+      .form{margin-top:14px;display:grid;gap:10px}
+      label{font-size:13px;color:var(--muted);font-weight:700}
+      input[type=text],input[type=password]{width:100%;background:#111522;border:1px solid var(--border);color:var(--text);border-radius:12px;padding:10px 12px;font-size:15px;font-weight:700}
+      .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+      .btn{padding:12px;border-radius:12px;border:1px solid var(--border);background:#0f1422;color:var(--text);font-weight:800}
+      .btn.blue{border-color:rgba(100,181,246,.45);color:var(--blue)}
+      .note{font-size:12px;color:var(--muted)}
+      .ok{color:#4caf50}
+      .err{color:#f44336}
+    </style>
+  </head>
+  <body>
+    <div class="phone">
+      <div class="card">
+        <h1>Settings</h1>
+        <a class="ghost" href="./home_screen_mockup.html">← Back to Home</a>
+        <div class="form">
+          <div>
+            <label for="token">GitHub Token (fine‑grained, contents: read/write; repo: this one)</label>
+            <input id="token" type="password" placeholder="ghp_..." autocomplete="off" />
+            <div class="note">Stored locally only. Revoke anytime in GitHub → Settings → Developer settings.</div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="owner">Owner</label>
+              <input id="owner" type="text" value="cobeycobb" />
+            </div>
+            <div>
+              <label for="repo">Repo</label>
+              <input id="repo" type="text" value="workoutapp" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="branch">Branch</label>
+              <input id="branch" type="text" value="main" />
+            </div>
+            <div>
+              <label for="dir">Directory</label>
+              <input id="dir" type="text" value="backups" />
+            </div>
+          </div>
+          <div>
+            <label for="auto">Auto‑backup on first launch each day</label>
+            <input id="auto" type="checkbox" />
+          </div>
+          <div class="actions">
+            <button id="save" class="btn blue">Save</button>
+            <button id="backupNow" class="btn blue">Backup Now</button>
+            <span id="status" class="note"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(()=>{}); }
+
+      const EX = { lat_pulldown:{id:'lat_pulldown', unit:'lb'}, incline_bench:{id:'incline_bench', unit:'lb/hand'}, rdl:{id:'rdl', unit:'lb/hand'} };
+      function loadAll(){
+        const out = {};
+        Object.keys(EX).forEach(id => { try { out[id] = JSON.parse(localStorage.getItem(`workoutclaude:history:${id}`)||'[]'); } catch { out[id] = []; } });
+        return out;
+      }
+      function toCSV(all){
+        const headers = ['dateISO','exerciseId','totalWeight','weightPerHand','S1_reps','S1_rir','S2_reps','S2_rir','S3_reps','S3_rir','S4_reps','S4_rir'];
+        const rows = [headers.join(',')];
+        Object.keys(all).forEach(id=>{
+          (all[id]||[]).forEach(s=>{
+            const total = typeof s.totalWeight==='number'? s.totalWeight : (EX[id].unit.includes('/hand')? (s.weightPerHand||0)*2 : (s.weightPerHand||0));
+            const wph = s.weightPerHand ?? (EX[id].unit.includes('/hand') ? (s.totalWeight||0)/2 : '');
+            const cells = [s.dateISO, id, total, wph];
+            for(let i=0;i<4;i++){ const set=s.sets?.[i]||{}; cells.push(set.reps ?? ''); cells.push(set.rir ?? ''); }
+            rows.push(cells.join(','));
+          });
+        });
+        return rows.join('\n');
+      }
+      function b64(text){ return btoa(unescape(encodeURIComponent(text))); }
+      function sameDayStr(d){ const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; }
+
+      async function githubFileExists({owner,repo,branch,dir,token}, filename){
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(dir)}/${encodeURIComponent(filename)}?ref=${encodeURIComponent(branch)}`;
+        const r = await fetch(url, { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }});
+        return r.ok; // 200 if exists
+      }
+      async function githubCreateFile({owner,repo,branch,dir,token}, filename, content, message){
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(dir)}/${encodeURIComponent(filename)}`;
+        const body = { message, content: b64(content), branch };
+        const r = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }, body: JSON.stringify(body) });
+        if (!r.ok) throw new Error(`GitHub error ${r.status}`);
+        return r.json();
+      }
+
+      async function backupNow(settings){
+        const all = loadAll();
+        const payload = { version: 1, exportedAt: new Date().toISOString(), data: all };
+        const date = sameDayStr(Date.now());
+        const jsonName = `${date}.json`;
+        const csvName  = `${date}.csv`;
+        // ensure directory exists (GitHub auto-creates on first file)
+        // skip if already backed up for the day
+        if (await githubFileExists(settings, jsonName)) return 'Already backed up today';
+        await githubCreateFile(settings, jsonName, JSON.stringify(payload, null, 2), `Backup ${date} (JSON)`);
+        await githubCreateFile(settings, csvName, toCSV(all), `Backup ${date} (CSV)`);
+        localStorage.setItem('workoutclaude:lastBackupDate', date);
+        return 'Backup complete';
+      }
+
+      // Settings persistence
+      const cfgKey = 'workoutclaude:ghBackupConfig';
+      function loadCfg(){ try{ return JSON.parse(localStorage.getItem(cfgKey)||'{}'); }catch{return {}} }
+      function saveCfg(cfg){ localStorage.setItem(cfgKey, JSON.stringify(cfg)); }
+
+      const $ = (id)=>document.getElementById(id);
+      const cfg = loadCfg();
+      $('owner').value = cfg.owner || 'cobeycobb';
+      $('repo').value = cfg.repo || 'workoutapp';
+      $('branch').value = cfg.branch || 'main';
+      $('dir').value = cfg.dir || 'backups';
+      $('token').value = cfg.token || '';
+      $('auto').checked = !!cfg.auto;
+
+      $('save').addEventListener('click', ()=>{
+        const next = { owner:$('owner').value.trim(), repo:$('repo').value.trim(), branch:$('branch').value.trim()||'main', dir:$('dir').value.trim()||'backups', token:$('token').value.trim(), auto:$('auto').checked };
+        saveCfg(next); $('status').textContent='Saved'; $('status').className='note ok';
+        setTimeout(()=>{$('status').textContent='';},1500);
+      });
+
+      $('backupNow').addEventListener('click', async ()=>{
+        $('status').textContent='Backing up…'; $('status').className='note';
+        try{
+          const msg = await backupNow(loadCfg());
+          $('status').textContent = msg; $('status').className='note ok';
+        }catch(e){ $('status').textContent = 'Backup failed'; $('status').className='note err'; }
+      });
+    </script>
+  </body>
+</html>
+
