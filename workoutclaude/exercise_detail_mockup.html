@@ -186,6 +186,7 @@
       }
       .ghost { padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: #0f1422; color: var(--muted); font-weight: 800; }
       .undo  { padding: 12px; border-radius: 12px; border: 1px solid rgba(255,152,0,0.45); background: #0f1422; color: var(--orange); font-weight: 800; }
+      .new   { padding: 12px; border-radius: 12px; border: 1px solid rgba(100,181,246,0.45); background: #0f1422; color: var(--blue); font-weight: 800; }
     </style>
   </head>
   <body>
@@ -292,7 +293,9 @@
         weight: ex.defaultWeight,
         timerRemaining: ex.rest.base,
         timerRunning: false,
-        sessionSaved: false
+        sessionSaved: false,
+        startedAt: new Date().toISOString(),
+        lastUpdated: Date.now()
       });
       let state = loadState() || initialState();
       let timerInterval = null;
@@ -310,6 +313,28 @@
       const undoBtn = document.getElementById('undoBtn');
       const repButtonsEl = document.getElementById('repButtons');
       const rirButtonsEl = document.getElementById('rirButtons');
+      let newBtn;
+
+      // Daily auto-reset policy (new day → fresh session if last was saved or empty)
+      function sameLocalDay(aISO, bDate) {
+        try { const a = new Date(aISO); return a.getFullYear()===bDate.getFullYear() && a.getMonth()===bDate.getMonth() && a.getDate()===bDate.getDate(); } catch { return true; }
+      }
+      (function maybeDailyReset(){
+        const now = new Date();
+        if (!state.startedAt || !sameLocalDay(state.startedAt, now)) {
+          const anyLogged = state.sets?.some(s => s.reps && s.rir !== null);
+          if (state.sessionSaved || !anyLogged) {
+            const keepWeight = state.weight;
+            state = initialState();
+            state.weight = keepWeight;
+            saveState();
+          } else {
+            stopTimer();
+            state.timerRemaining = ex.rest.base;
+            saveState();
+          }
+        }
+      })();
 
       // Setup static UI
       titleEl.textContent = ex.name;
@@ -411,6 +436,21 @@
         saveState();
       }
 
+      function startNewSession() {
+        const keepWeight = state.weight;
+        state = initialState();
+        state.weight = keepWeight;
+        weightInput.value = `${state.weight} ${ex.unit}`;
+        logBtn.disabled = false;
+        logBtn.textContent = 'Log Set & Start Rest Timer';
+        saveState();
+        buildBars();
+        renderBars();
+        updateTimerDisplay();
+        [...repButtonsEl.children].forEach((c) => c.classList.remove('selected'));
+        [...rirButtonsEl.children].forEach((c) => c.classList.remove('selected'));
+      }
+
       // Rep and RIR controls
       function buildRepButtons() {
         const frag = document.createDocumentFragment();
@@ -508,6 +548,14 @@
           logBtn.disabled = true;
           logBtn.textContent = 'All sets logged — great work!';
           finalizeSession();
+          if (!newBtn) {
+            newBtn = document.createElement('button');
+            newBtn.id = 'newSessionBtn';
+            newBtn.className = 'new';
+            newBtn.textContent = 'Start New Session';
+            newBtn.addEventListener('click', startNewSession);
+            document.querySelector('.actions').appendChild(newBtn);
+          }
         }
         saveState();
         renderBars();
@@ -577,6 +625,7 @@
       }
 
       function saveState() {
+        state.lastUpdated = Date.now();
         localStorage.setItem(stateKey, JSON.stringify(state));
       }
       function loadState() {
