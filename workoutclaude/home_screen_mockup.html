@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workout Tracker — Home (Mockup)</title>
+    <style>
+      :root {
+        --bg-start: #1e1e2e;
+        --bg-end: #2a2d3a;
+        --card: #1a1d29;
+        --card-2: #202332;
+        --border: #3a3d4a;
+        --text: #e6e7ea;
+        --muted: #aab0bd;
+
+        --blue: #64b5f6;
+        --green: #4caf50;
+        --yellow: #ffc107;
+        --orange: #ff9800;
+        --red: #f44336;
+
+        --radius-lg: 16px;
+        --radius-sm: 10px;
+        --shadow: 0 8px 24px rgba(0,0,0,0.35);
+        --container-w: 430px;
+      }
+
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: var(--text);
+        background: linear-gradient(145deg, var(--bg-start), var(--bg-end));
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .phone {
+        max-width: var(--container-w);
+        margin: 0 auto;
+        padding: 20px 16px 28px;
+      }
+
+      header {
+        padding: 20px 16px;
+        background: linear-gradient(180deg, rgba(100,181,246,0.12), rgba(100,181,246,0));
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+      }
+      header h1 {
+        margin: 0 0 6px;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        color: var(--blue);
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .cards {
+        margin-top: 18px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .card {
+        background: linear-gradient(180deg, var(--card), var(--card-2));
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px;
+        box-shadow: var(--shadow);
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .title {
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .weight-badge {
+        background: rgba(76, 175, 80, 0.12);
+        border: 1px solid rgba(76, 175, 80, 0.35);
+        color: var(--green);
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .recommend {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 13px;
+        background: rgba(100, 181, 246, 0.08);
+        border: 1px solid rgba(100, 181, 246, 0.35);
+        color: var(--blue);
+      }
+      .pulse {
+        width: 10px;
+        height: 10px;
+        background: var(--blue);
+        border-radius: 50%;
+        position: relative;
+        box-shadow: 0 0 0 0 rgba(100,181,246, 0.7);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(100,181,246,0.6); }
+        70% { box-shadow: 0 0 0 12px rgba(100,181,246,0); }
+        100% { box-shadow: 0 0 0 0 rgba(100,181,246,0); }
+      }
+
+      .history {
+        border-top: 1px dashed var(--border);
+        padding-top: 10px;
+      }
+      .history h4 {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+      }
+      .mini-session {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 6px;
+        align-items: end;
+      }
+      .mini-date {
+        text-align: center;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .mini-weight { text-align: center; font-size: 10px; color: var(--muted); font-weight: 700; }
+      .mini-sets {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+        align-items: end;
+      }
+      .mini-sets.sets-3 { grid-template-columns: repeat(3, 1fr); }
+      .mini-set {
+        height: 38px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: #131622;
+        position: relative;
+        overflow: hidden;
+      }
+      .mini-fill {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 0%;
+        transition: height 0.6s ease;
+      }
+      /* Rep zones */
+      .z-yellow { background: linear-gradient(180deg, #ffe082, var(--yellow)); }
+      .z-green  { background: linear-gradient(180deg, #81c784, var(--green)); }
+      .z-blue   { background: linear-gradient(180deg, #90caf9, var(--blue)); }
+      /* RIR cap */
+      .cap { position: absolute; top: 0; left: 0; right: 0; height: 5px; }
+      .rir-0 { background: var(--red); }
+      .rir-1 { background: var(--orange); }
+      .rir-2 { background: var(--green); }
+      .rir-3 { background: var(--blue); }
+
+      .start {
+        position: sticky;
+        bottom: 12px;
+        margin-top: 18px;
+        display: block;
+        width: 100%;
+        padding: 14px 16px;
+        background: linear-gradient(180deg, #73c3ff, #3aa1ff);
+        color: #081423;
+        text-align: center;
+        font-weight: 800;
+        border-radius: 14px;
+        border: 0;
+        box-shadow: 0 10px 24px rgba(58,161,255,0.35);
+        text-decoration: none;
+      }
+
+      .legend {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+      .dot.yellow { background: var(--yellow); }
+      .dot.green  { background: var(--green); }
+      .dot.blue   { background: var(--blue); }
+      .dot.red    { background: var(--red); }
+      .dot.orange { background: var(--orange); }
+
+      .gold-border { outline: 2px solid gold; outline-offset: 2px; border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+    <!-- Static mockup: layout and visuals only -->
+    <div class="phone">
+      <header>
+        <h1>Workout Tracker</h1>
+        <p>Double progression • 6–10 reps • 1–2 RIR</p>
+      </header>
+
+      <section class="card" style="margin-top:14px;">
+        <div class="legend">
+          <span><i class="dot yellow"></i>1–5 reps</span>
+          <span><i class="dot green"></i>6–8 reps</span>
+          <span><i class="dot blue"></i>9–10 reps</span>
+          <span><i class="dot orange"></i>RIR 1</span>
+          <span><i class="dot green"></i>RIR 2</span>
+          <span><i class="dot blue"></i>RIR 3</span>
+        </div>
+      </section>
+
+      <div class="cards">
+        <!-- Lat Pulldown -->
+        <section class="card" onclick="location.href='exercise_detail_mockup.html?exercise=lat_pulldown'" style="cursor:pointer">
+          <div class="card-header">
+            <div class="title">Lat Pulldown</div>
+            <div class="weight-badge">140 lb</div>
+          </div>
+          <div class="recommend"><span class="pulse" aria-hidden="true"></span> Ready for weight increase! +5 lb recommended</div>
+          <div class="history">
+            <h4>Last 6 sessions</h4>
+            <div class="mini-grid">
+              <!-- Oldest → Newest (visual order) -->
+              <div class="mini-session">
+                <div class="mini-date">07/28</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 44%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 42%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 40%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 38%"></div></div>
+                </div>
+                <div class="mini-weight">125 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">07/31</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 52%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 50%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 48%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 46%"></div></div>
+                </div>
+                <div class="mini-weight">127.5 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/03</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 55%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 58%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 60%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 62%"></div></div>
+                </div>
+                <div class="mini-weight">130 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/06</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-green" style="height: 76%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 74%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 62%"></div></div>
+                  <div class="mini-set"><div class="cap rir-1"></div><div class="mini-fill z-yellow" style="height: 58%"></div></div>
+                </div>
+                <div class="mini-weight">132.5 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/09</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 82%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 78%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 75%"></div></div>
+                  <div class="mini-set"><div class="cap rir-1"></div><div class="mini-fill z-yellow" style="height: 60%"></div></div>
+                </div>
+                <div class="mini-weight">135 lb</div>
+              </div>
+              <div class="mini-session gold-border">
+                <div class="mini-date">08/12</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-blue" style="height: 95%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-blue" style="height: 92%"></div></div>
+                  <div class="mini-set"><div class="cap rir-1"></div><div class="mini-fill z-green" style="height: 80%"></div></div>
+                  <div class="mini-set"><div class="cap rir-1"></div><div class="mini-fill z-green" style="height: 78%"></div></div>
+                </div>
+                <div class="mini-weight">140 lb</div>
+              </div>
+            </div>
+            
+          </div>
+        </section>
+
+        <!-- Incline Bench Press -->
+        <section class="card" onclick="location.href='exercise_detail_mockup.html?exercise=incline_bench'" style="cursor:pointer">
+          <div class="card-header">
+            <div class="title">Incline Bench Press (~30°)</div>
+            <div class="weight-badge">155 lb</div>
+          </div>
+          <div class="recommend">📈 Building strength — stay consistent!</div>
+          <div class="history">
+            <h4>Last 6 sessions</h4>
+            <div class="mini-grid">
+              <!-- Oldest → Newest (visual order) -->
+              <div class="mini-session">
+                <div class="mini-date">07/27</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 38%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 38%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 36%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 36%"></div></div>
+                </div>
+                <div class="mini-weight">145 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">07/30</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 44%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 44%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 40%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 40%"></div></div>
+                </div>
+                <div class="mini-weight">147.5 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/02</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 50%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 48%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 46%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 46%"></div></div>
+                </div>
+                <div class="mini-weight">150 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/05</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 54%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 52%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 50%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 50%"></div></div>
+                </div>
+                <div class="mini-weight">150 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/08</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 60%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 60%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 58%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 56%"></div></div>
+                </div>
+                <div class="mini-weight">152.5 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/11</div>
+                <div class="mini-sets">
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 80%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 78%"></div></div>
+                  <div class="mini-set"><div class="cap rir-1"></div><div class="mini-fill z-yellow" style="height: 62%"></div></div>
+                  <div class="mini-set"><div class="cap rir-1"></div><div class="mini-fill z-yellow" style="height: 58%"></div></div>
+                </div>
+                <div class="mini-weight">155 lb</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dumbbell RDL -->
+        <section class="card" onclick="location.href='exercise_detail_mockup.html?exercise=rdl'" style="cursor:pointer">
+          <div class="card-header">
+            <div class="title">Dumbbell RDL</div>
+            <div class="weight-badge">140 lb</div>
+          </div>
+          <div class="recommend">✨ Ready for weight increase! +5 lb recommended</div>
+          <div class="history">
+            <h4>Last 6 sessions</h4>
+            <div class="mini-grid">
+              <!-- Oldest → Newest (visual order) -->
+              <div class="mini-session">
+                <div class="mini-date">07/26</div>
+                <div class="mini-sets sets-3">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 44%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 42%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 40%"></div></div>
+                </div>
+                <div class="mini-weight">120 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">07/29</div>
+                <div class="mini-sets sets-3">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 50%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 48%"></div></div>
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 46%"></div></div>
+                </div>
+                <div class="mini-weight">125 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/01</div>
+                <div class="mini-sets sets-3">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-yellow" style="height: 56%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 54%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 52%"></div></div>
+                </div>
+                <div class="mini-weight">130 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/04</div>
+                <div class="mini-sets sets-3">
+                  <div class="mini-set"><div class="cap rir-3"></div><div class="mini-fill z-green" style="height: 74%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 62%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-yellow" style="height: 60%"></div></div>
+                </div>
+                <div class="mini-weight">135 lb</div>
+              </div>
+              <div class="mini-session">
+                <div class="mini-date">08/07</div>
+                <div class="mini-sets sets-3">
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 80%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 76%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 74%"></div></div>
+                </div>
+                <div class="mini-weight">140 lb</div>
+              </div>
+              <div class="mini-session gold-border">
+                <div class="mini-date">08/10</div>
+                <div class="mini-sets sets-3">
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-blue" style="height: 92%"></div></div>
+                  <div class="mini-set"><div class="cap rir-2"></div><div class="mini-fill z-green" style="height: 82%"></div></div>
+                  <div class="mini-set"><div class="cap rir-1"></div><div class="mini-fill z-green" style="height: 78%"></div></div>
+                </div>
+                <div class="mini-weight">140 lb</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <a class="start" href="./exercise_detail_mockup.html?exercise=lat_pulldown">Start Today's Workout</a>
+    </div>
+  </body>
+</html>
