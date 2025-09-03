@@ -20,6 +20,8 @@
       .card{ background: linear-gradient(180deg, var(--card), var(--card-2)); border:1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; box-shadow: var(--shadow); }
       header.card h1{ margin:0; font-size:22px; font-weight:800; color: var(--blue); }
       .ghost{ display:inline-block; margin-top:8px; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:#0f1422; color:var(--muted); font-weight:800; text-decoration:none; }
+      .toolbar{ margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
+      .btn.blue{ border-color: rgba(100,181,246,0.45); color: var(--blue); }
       .section{ margin-top:14px; }
       .title{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
       .title h2{ margin:0; font-size:18px; }
@@ -40,6 +42,12 @@
       <header class="card">
         <h1>Manage History</h1>
         <a class="ghost" href="./home_screen_mockup.html">← Back to Home</a>
+        <div class="toolbar">
+          <button class="btn blue" id="exportJson">⬇️ Export JSON</button>
+          <button class="btn blue" id="exportCsv">⬇️ Export CSV</button>
+          <label class="btn" for="importJson" style="cursor:pointer;">⬆️ Import JSON</label>
+          <input id="importJson" type="file" accept="application/json" style="display:none;" />
+        </div>
       </header>
 
       <section class="card section">
@@ -75,6 +83,7 @@
       function totalFor(exId, sess){ return typeof sess.totalWeight==='number'? sess.totalWeight : (EX[exId].unit.includes('/hand')? (sess.weightPerHand||0)*2 : (sess.weightPerHand||0)); }
       function load(exId){ try { return JSON.parse(localStorage.getItem(`workoutclaude:history:${exId}`)||'[]'); } catch { return []; } }
       function save(exId, arr){ localStorage.setItem(`workoutclaude:history:${exId}`, JSON.stringify(arr)); }
+      function loadAll(){ return Object.fromEntries(Object.keys(EX).map(id=>[id, load(id)])); }
       function render(){
         Object.keys(EX).forEach(id=>{
           const arr = load(id);
@@ -114,7 +123,63 @@
         });
       });
       render();
+
+      // Export / Import helpers
+      function download(filename, text, type='text/plain'){
+        const blob = new Blob([text], {type});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      }
+      document.getElementById('exportJson').addEventListener('click', ()=>{
+        const payload = { version: 1, exportedAt: new Date().toISOString(), data: loadAll() };
+        download('workout-history.json', JSON.stringify(payload, null, 2), 'application/json');
+      });
+      document.getElementById('exportCsv').addEventListener('click', ()=>{
+        const all = loadAll();
+        const headers = ['dateISO','exerciseId','totalWeight','weightPerHand','S1_reps','S1_rir','S2_reps','S2_rir','S3_reps','S3_rir','S4_reps','S4_rir'];
+        const rows = [headers.join(',')];
+        Object.keys(EX).forEach(id=>{
+          (all[id]||[]).forEach(s=>{
+            const wph = s.weightPerHand ?? (EX[id].unit.includes('/hand') ? (s.totalWeight||0)/2 : null);
+            const cells = [
+              s.dateISO,
+              id,
+              totalFor(id,s),
+              wph ?? '',
+            ];
+            for(let i=0;i<4;i++){
+              const set = s.sets?.[i] || {};
+              cells.push(set.reps ?? '');
+              cells.push(set.rir ?? '');
+            }
+            rows.push(cells.join(','));
+          });
+        });
+        download('workout-history.csv', rows.join('\n'), 'text/csv');
+      });
+      document.getElementById('importJson').addEventListener('change', (e)=>{
+        const file = e.target.files?.[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try{
+            const payload = JSON.parse(reader.result);
+            const data = payload.data || payload; // allow raw map
+            Object.keys(EX).forEach(id=>{
+              if(Array.isArray(data[id])){
+                // Merge existing + imported, then sort by date, keep last 24
+                const cur = load(id);
+                const merged = [...cur, ...data[id]].sort((a,b)=>new Date(a.dateISO)-new Date(b.dateISO));
+                while(merged.length>24) merged.shift();
+                save(id, merged);
+              }
+            });
+            alert('Import complete');
+            render();
+          }catch(err){ alert('Invalid JSON'); }
+        };
+        reader.readAsText(file);
+      });
     </script>
   </body>
 </html>
-
